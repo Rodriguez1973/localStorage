@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Registro Actividad</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Font Awesome -->
+    <!-- Font Awesome ofrece iconos vectoriales escalables que se pueden personalizar instantáneamente: tamaño, color, sombra paralela, y cualquier cosa que se pueda hacer con el poder de CSS.-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+        integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- SweetAlert -->
+    <!--Plugin con el cual podremos dar un aspecto profesional a los mensajes que lancemos a los usuarios acorde a las tendencias actuales -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+
+    <!-- Hoja de estilos -->
+    <link rel="stylesheet" href="./css/estilo.css">
+
+    <!-- JavaScript -->
+    <script src="./js/index.js" defer></script>
+</head>
+
+
+<body>
+    <main>
+        <header class="cabecera">
+            <picture style="margin: 20px;">
+                <img id="imagenTitulo" src="./images/JARL_Logo.jpg" alt="JARL_Logo">
+            </picture>
+            <h1 id="titulo">Registro Actividad</h1>
+        </header>
+
+        <article class="menu">
+            <ul>
+                <li class="entrada">
+                    <fieldset>
+                        <legend>Tarea</legend>
+                        <input type="text" id="tarea">
+                    </fieldset>
+                </li>
+                <li class="entrada">
+                    <fieldset>
+                        <legend>Tiempo Programado</legend>
+                        <input type="number" id="tProgramado" min="1" value="1">
+                    </fieldset>
+                </li>
+                <li class="entrada">
+                    <fieldset>
+                        <legend>Tiempo Empleado</legend>
+                        <input type="number" id="tEmpleado" min="1" value="1">
+                    </fieldset>
+                </li>
+                <li class="entrada">
+                    <fieldset>
+                        <legend>Descripción</legend>
+                        <textarea id="descripcion" maxlength="200" cols="50"></textarea>
+                    </fieldset>
+                </li>
+                <li class="icono" id="grabarSessionStorage">
+                    <i class="fas fa-save"></i>
+                </li>
+                <li class="icono" id="mostrarSessionStorage">
+                    <i class="fas fa-table"></i>
+                </li>
+            </ul>
+        </article>
+
+        <article class="contenedorTabla">
+            <header>
+                <hgroup>
+                    <h1>Datos de sesión registrados</h1>
+                </hgroup>
+            </header>
+            <!-- TABLA DATOS -->
+            <div id="tablaDatos"></div>
+        </article>
+
+        <footer class="pie">
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            Desarrollo de Aplicaciones Web(<cite>DAW</cite>) &copy; CIFP Santa Catalina
+        </footer>
+    </main>
+</body>
+
+</html>
