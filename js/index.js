@@ -3,14 +3,14 @@ Proyecto realizado por: José A. Rodríguez López
 Fecha: 23/12/2022
 */
 let registrosLocalStorage = [] //Array donde se almacenaran las variables locales del localStorage.
-let ultimaClave=obtenerUltimaClave() //Ultima clave asignada.
+let ultimaClave = obtenerUltimaClave() //Ultima clave asignada.
 let borrado = false //Flag de control de la acción de borrado.
 
 //-------------------------------------------------------------------------------------------------
 //Referencias de los objetos del formulario.
 const grabarLocalStorage = document.getElementById('grabarLocalStorage')
 const mostrarLocalStorage = document.getElementById('mostrarLocalStorage')
-const borrarLocalStorage= document.getElementById('borrarLocalStorage')
+const borrarLocalStorage = document.getElementById('borrarLocalStorage')
 const iTarea = document.getElementById('tarea')
 const iTProgramado = document.getElementById('tProgramado')
 const iTEmpleado = document.getElementById('tEmpleado')
@@ -20,7 +20,11 @@ const tablaDatos = document.getElementById('tablaDatos')
 //--------------------------------------------------------------------------------------------------
 //Definición de eventos de los objetos.
 grabarLocalStorage.addEventListener('click', guardarRegistroLocalStorage, false) //Evento click sobre el ícono de grabar.
-mostrarLocalStorage.addEventListener('click', mostrarRegistrosLocalStorage, false) //Evento click sobre el ícono de mostrar tabla.
+mostrarLocalStorage.addEventListener(
+  'click',
+  mostrarRegistrosLocalStorage,
+  false,
+) //Evento click sobre el ícono de mostrar tabla.
 borrarLocalStorage.addEventListener('click', borrarRegistrosLocalStorage, false) //Evento click sobre el ícono de borrar.
 
 //--------------------------------------------------------------------------------------------------
@@ -28,7 +32,7 @@ borrarLocalStorage.addEventListener('click', borrarRegistrosLocalStorage, false)
 function borrarRegistrosLocalStorage() {
   if (window.localStorage.length > 0) {
     window.localStorage.clear()
-    indiceRegistro = 0 
+    ultimaClave = 0
     tablaDatos.innerHTML = ''
   } else {
     mostrarVentanaEmergente(
@@ -41,31 +45,44 @@ function borrarRegistrosLocalStorage() {
 
 //--------------------------------------------------------------------------------------------------
 //Clase que modela cada registro de actividad.
-class registroActividad{
-  constructor(tarea,tProgramado, tEmpleado, descripcion){
-      this.tarea=tarea
-      this.tProgramado=tProgramado
-      this.tEmpleado=tEmpleado
-      this.descripcion=descripcion
+class registroActividad {
+  constructor(tarea, tProgramado, tEmpleado, descripcion) {
+    this.tarea = tarea
+    this.tProgramado = tProgramado
+    this.tEmpleado = tEmpleado
+    this.descripcion = descripcion
   }
 
-  toString(){
-      return this.tarea+'*/*'+this.tProgramado+'*/*'+this.tEmpleado+'*/*'+this.descripcion
+  toString() {
+    return (
+      this.tarea +
+      '*/*' +
+      this.tProgramado +
+      '*/*' +
+      this.tEmpleado +
+      '*/*' +
+      this.descripcion
+    )
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 //Almacena un registro en el localStorage.
 function guardarRegistroLocalStorage() {
-  if (typeof(Storage) !== 'undefined') {
+  if (typeof Storage !== 'undefined') {
     if (validarRegistro()) {
-      let registro=new registroActividad(iTarea.value,iTProgramado.value, iTEmpleado.value, iDescripcion.value)
+      let registro = new registroActividad(
+        iTarea.value,
+        iTProgramado.value,
+        iTEmpleado.value,
+        iDescripcion.value,
+      )
       window.localStorage.setItem(++ultimaClave, registro.toString())
-      limpiaCampos();
+      limpiaCampos()
       mostrarVentanaEmergente(
         'Almacenamiento',
         'Registro almacenado en el almacenamiento local.',
-        'success'
+        'success',
       )
     }
   } else {
@@ -92,14 +109,13 @@ function mostrarVentanaEmergente(titulo, mensaje, icono) {
 //Presenta una tabla con los registros almacenados en el localStorage.
 function mostrarRegistrosLocalStorage() {
   registrosLocalStorage = []
-  for (let indice = 0; indice < window.localStorage.length; indice++){
-      let clave = window.localStorage.key(indice)
-      let registro = window.localStorage.getItem(clave)
-      registrosLocalStorage[clave] = registro.split('*/*')
+  for (let indice = 0; indice < window.localStorage.length; indice++) {
+    let clave = window.localStorage.key(indice)
+    let registro = window.localStorage.getItem(clave)
+    registrosLocalStorage[clave] = registro.split('*/*')
   }
   mostrarTabla()
 }
-
 
 //--------------------------------------------------------------------------------------------------
 //Función que muestra la tabla en la interfaz.
@@ -219,13 +235,13 @@ function limpiaCampos() {
 }
 
 //--------------------------------------------------------------------------------------------------
-//Obtiene la última clave asignada en el local storage.
-function obtenerUltimaClave(){
-  let uClave=0;
-    
-  for (let i =0; i<localStorage.length; i++){
-    if(uClave<localStorage.key(i)){
-      uClave=localStorage.key(i)
+//Obtiene la última clave asignada en el local storage y si no devuelve 0.
+function obtenerUltimaClave() {
+  let uClave = 0
+
+  for (let i = 0; i < window.localStorage.length; i++) {
+    if (uClave < parseInt(window.localStorage.key(i))) {
+      uClave = window.localStorage.key(i)
     }
   }
   return uClave
