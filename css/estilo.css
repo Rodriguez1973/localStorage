@@ -55,6 +55,10 @@ li fieldset legend {
     margin: 10px;
 }
 
+.contenedorTabla h1{
+    margin-left: 10px;
+}
+
 .pie {
     grid-area: g;
     margin-top: 100px;

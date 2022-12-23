@@ -1,19 +1,43 @@
 /*
 Proyecto realizado por: José A. Rodríguez López
-Fecha: 18/12/2022
+Fecha: 23/12/2022
 */
-let registros = new Array() //Array donde se almacenaran las variables locales del sessionStorage.
-let indiceRegistro=0  //Contador registros de sesión.
+let registrosLocalStorage = [] //Array donde se almacenaran las variables locales del localStorage.
+let ultimaClave=obtenerUltimaClave() //Ultima clave asignada.
+let borrado = false //Flag de control de la acción de borrado.
 
 //-------------------------------------------------------------------------------------------------
 //Referencias de los objetos del formulario.
-const grabarSessionStorage = document.getElementById('grabarSessionStorage')
-const mostrarSessionStorage = document.getElementById('mostrarSessionStorage')
+const grabarLocalStorage = document.getElementById('grabarLocalStorage')
+const mostrarLocalStorage = document.getElementById('mostrarLocalStorage')
+const borrarLocalStorage= document.getElementById('borrarLocalStorage')
 const iTarea = document.getElementById('tarea')
 const iTProgramado = document.getElementById('tProgramado')
 const iTEmpleado = document.getElementById('tEmpleado')
 const iDescripcion = document.getElementById('descripcion')
 const tablaDatos = document.getElementById('tablaDatos')
+
+//--------------------------------------------------------------------------------------------------
+//Definición de eventos de los objetos.
+grabarLocalStorage.addEventListener('click', guardarRegistroLocalStorage, false) //Evento click sobre el ícono de grabar.
+mostrarLocalStorage.addEventListener('click', mostrarRegistrosLocalStorage, false) //Evento click sobre el ícono de mostrar tabla.
+borrarLocalStorage.addEventListener('click', borrarRegistrosLocalStorage, false) //Evento click sobre el ícono de borrar.
+
+//--------------------------------------------------------------------------------------------------
+//Borrar todo el contenido del localStorage.
+function borrarRegistrosLocalStorage() {
+  if (window.localStorage.length > 0) {
+    window.localStorage.clear()
+    indiceRegistro = 0 
+    tablaDatos.innerHTML = ''
+  } else {
+    mostrarVentanaEmergente(
+      'Almacenamiento',
+      'No existen registros que borrar en el almacenamiento local.',
+      'info',
+    )
+  }
+}
 
 //--------------------------------------------------------------------------------------------------
 //Clase que modela cada registro de actividad.
@@ -30,68 +54,58 @@ class registroActividad{
   }
 }
 
-
 //--------------------------------------------------------------------------------------------------
-//Definición de eventos de los objetos.
-grabarSessionStorage.addEventListener('click', guardarSessionStorage, false) //Evento click sobre el ícono de grabar.
-mostrarSessionStorage.addEventListener('click', mostrarSessionStorage, false) //Evento click sobre el ícono de mostrar tabla.
-
-//--------------------------------------------------------------------------------------------------
-//Función que almacena una un registro en el sessionStorage.
-function guardarSessionStorage() {
+//Almacena un registro en el localStorage.
+function guardarRegistroLocalStorage() {
   if (typeof(Storage) !== 'undefined') {
     if (validarRegistro()) {
       let registro=new registroActividad(iTarea.value,iTProgramado.value, iTEmpleado.value, iDescripcion.value)
-      window.localStorage.setItem(++indiceRegistro, registro.toString())
+      window.localStorage.setItem(++ultimaClave, registro.toString())
       limpiaCampos();
+      mostrarVentanaEmergente(
+        'Almacenamiento',
+        'Registro almacenado en el almacenamiento local.',
+        'success'
+      )
     }
   } else {
-   // Código cuando Storage NO es compatible
+    mostrarVentanaEmergente(
+      'Almacenamiento',
+      'El navegador no admite almacenamiento local.',
+      'warning',
+    )
   }
 }
 
 //--------------------------------------------------------------------------------------------------
-//Función que establece una cookie.
-function establecerCookie(valorCookie, diasExpiracion) {
-  let fecha = new Date() //Fecha actual.
-  let claveCookie = fecha.getTime()
-  let fechaExpiracion = new Date(
-    fecha.getTime() + diasExpiracion * 24 * 60 * 60 * 1000,
-  ) //Fecha de expiración.
-  document.cookie =
-    claveCookie +
-    '=' +
-    valorCookie +
-    '; expires=' +
-    fechaExpiracion.toUTCString() +
-    '; path=/'
-
+//Función que muestra ventana emergente de notificaciones.
+function mostrarVentanaEmergente(titulo, mensaje, icono) {
   Swal.fire({
-    title: 'Cookie guardada',
+    title: titulo,
+    text: mensaje,
+    icon: icono,
     confirmButtonText: 'Aceptar',
   })
 }
 
 //--------------------------------------------------------------------------------------------------
-//Presenta una tabla con las cookies almacenadas.
-function mostrarCookiesAlmacenadas() {
-  let registros = document.cookie.split(';') //Obtiene los registros de las cookies del documento.
-  cookies = new Array()
-  for (let registro in registros) {
-    let cadena = registros[registro].replaceAll('=', '*/*') //Adapta el registro.
-    if (cadena.split('*/*').length == 5) {
-      cookies.push(cadena.split('*/*'))
-    }
+//Presenta una tabla con los registros almacenados en el localStorage.
+function mostrarRegistrosLocalStorage() {
+  registrosLocalStorage = []
+  for (let indice = 0; indice < window.localStorage.length; indice++){
+      let clave = window.localStorage.key(indice)
+      let registro = window.localStorage.getItem(clave)
+      registrosLocalStorage[clave] = registro.split('*/*')
   }
   mostrarTabla()
 }
+
 
 //--------------------------------------------------------------------------------------------------
 //Función que muestra la tabla en la interfaz.
 function mostrarTabla() {
   tablaDatos.innerHTML = '' //Borra la tabla.
-  if (cookies.length > 0) {
-    let indice = 1 //Indice del elemento
+  if (registrosLocalStorage.length > 0) {
     let tabla = document.createElement('table') //Tabla
     tablaDatos.appendChild(tabla)
     let thead = document.createElement('thead') //Encabezado
@@ -99,10 +113,10 @@ function mostrarTabla() {
     let trEncabezado = document.createElement('tr') //Fila encabezado.
     thead.appendChild(trEncabezado)
     let thColumna = document.createElement('th') //Columna1.
-    thColumna.innerText = 'NºReg.'
+    thColumna.innerText = 'Clave'
     trEncabezado.appendChild(thColumna)
     thColumna = document.createElement('th') //Columna2.
-    thColumna.innerText = 'Clave'
+    thColumna.innerText = 'Accion'
     trEncabezado.appendChild(thColumna)
     thColumna = document.createElement('th') //Columna3.
     thColumna.innerText = 'Tarea'
@@ -119,65 +133,70 @@ function mostrarTabla() {
     let tbody = document.createElement('tbody') //Cuerpo de la tabla
     tabla.appendChild(tbody)
 
-    //Recorre todas las cookies.
-    for (const cookie of cookies) {
+    //Recorre todos los registros del almacenamiento de sesión.
+    for (const clave in registrosLocalStorage) {
       let fila = document.createElement('tr') //Crea una fila.
       tbody.appendChild(fila) //Añade la fila al cuerpo de la tabla.
-      let celda = document.createElement('td') //Crea celda nº registro.
-      celda.innerText = indice
+      let celda = document.createElement('td') //Crea celda clave.
+      celda.innerText = clave
       fila.appendChild(celda)
       celda = document.createElement('td') //Crea celda clave.
       let iBorrar = document.createElement('input') //Botón de borrado.
       iBorrar.type = 'button'
-      iBorrar.id = cookie[0]
+      iBorrar.id = clave
       iBorrar.value = 'Borrar'
-      iBorrar.addEventListener('click', borrarCookie, false)
+      iBorrar.addEventListener('click', borrarRegistroLocalStorage, false)
       celda.appendChild(iBorrar)
       fila.appendChild(celda)
       celda = document.createElement('td') //Crea celda tarea.
-      celda.innerText = cookie[1]
+      celda.innerText = registrosLocalStorage[clave][0]
       fila.appendChild(celda)
       celda = document.createElement('td') //Crea celda tiempo programado
-      celda.innerText = cookie[2]
+      celda.innerText = registrosLocalStorage[clave][1]
       fila.appendChild(celda)
       celda = document.createElement('td') //Crea celda tiempo empleado
-      celda.innerText = cookie[3]
+      celda.innerText = registrosLocalStorage[clave][2]
       fila.appendChild(celda)
       celda = document.createElement('td') //Crea celda descripción.
-      celda.innerText = cookie[4]
+      celda.innerText = registrosLocalStorage[clave][3]
       fila.appendChild(celda)
-      indice++
+    }
+  } else {
+    if (!borrado) {
+      mostrarVentanaEmergente(
+        'Almacenamiento',
+        'No existen registros que mostrar en el almacenamiento local.',
+        'info',
+      )
     }
   }
+  borrado = false
 }
 
 //--------------------------------------------------------------------------------------------------
-//Función que borra una cookie almacenada.
-function borrarCookie(evt) {
-  let fechaActual=new Date()
-  let fechaExpiracion=new Date()
-  fechaExpiracion.setTime(fechaActual.getTime()-1)
-  document.cookie = evt.target.id + '=; expires='+fechaExpiracion.toUTCString()+'; max-age=0; path=/'
-  cookies = new Array()
-  mostrarCookiesAlmacenadas()
+//Borrar un registro del sessionStorage.
+function borrarRegistroLocalStorage(evt) {
+  window.localStorage.removeItem(evt.target.id)
+  borrado = true
+  mostrarRegistrosLocalStorage()
 }
 
 //--------------------------------------------------------------------------------------------------
-//Functión que valida los datos de los registros a almacenar localmente.
+//Validar los datos de los registros a almacenar localmente en la sesión.
 function validarRegistro() {
   let valido = true
   if (iTarea.value.trim() === '' || iTarea.value.trim().includes('*/*')) {
     valido = false
     let mensaje = 'La tarea no puede estar vacía o contener la subcadena "*/*".'
-    mostrarMensaje('Error de validación',mensaje,'warning')
+    mostrarVentanaEmergente('Error de validación', mensaje, 'error')
   } else if (iTProgramado.value == '' || iTProgramado.value <= 0) {
     valido = false
     let mensaje = 'El tiempo programado no puede ser nulo o negativo.'
-    mostrarMensaje('Error de validación',mensaje,'warning')
+    mostrarVentanaEmergente('Error de validación', mensaje, 'error')
   } else if (iTEmpleado.value == '' || iTEmpleado.value <= 0) {
     valido = false
     let mensaje = 'El tiempo empleado no puede ser nulo o negativo.'
-    mostrarMensaje('Error de validación',mensaje,'warning')
+    mostrarVentanaEmergente('Error de validación', mensaje, 'error')
   } else if (
     iDescripcion.value.trim() === '' ||
     iDescripcion.value.trim().includes('*/*')
@@ -185,26 +204,29 @@ function validarRegistro() {
     valido = false
     let mensaje =
       'La descripción no puede estar vacía o contener la subcadena "*/*".'
-    mostrarMensaje('Error de validación',mensaje,'warning')
+    mostrarVentanaEmergente('Error de validación', mensaje, 'error')
   }
   return valido
 }
 
 //--------------------------------------------------------------------------------------------------
-function mostrarMensaje(titulo,mensaje,icono) {
-  Swal.fire({
-    title: titulo,
-    text: mensaje,
-    icon: icono,
-    confirmButtonText: 'Aceptar',
-  })
-}
-
-//--------------------------------------------------------------------------------------------------
-//Función que límpia los campos tras guardar una cookie.
+//Función que límpia los campos tras guardar un registro.
 function limpiaCampos() {
   iTarea.value = ''
   iTEmpleado.value = 1
   iTProgramado.value = 1
   iDescripcion.value = ''
+}
+
+//--------------------------------------------------------------------------------------------------
+//Obtiene la última clave asignada en el local storage.
+function obtenerUltimaClave(){
+  let uClave=0;
+    
+  for (let i =0; i<localStorage.length; i++){
+    if(uClave<localStorage.key(i)){
+      uClave=localStorage.key(i)
+    }
+  }
+  return uClave
 }
